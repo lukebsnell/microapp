@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -28,11 +28,14 @@ export default function Home() {
     icon: getIconForCategory(topic.category),
   }));
 
-  const currentTopic = topicsWithIcons.find((t) => t.id === activeTopic) || topicsWithIcons[0];
+  // Set default active topic in useEffect to avoid render-time state updates
+  useEffect(() => {
+    if (!activeTopic && topicsWithIcons.length > 0) {
+      setActiveTopic(topicsWithIcons[0].id);
+    }
+  }, [activeTopic, topicsWithIcons]);
 
-  if (!activeTopic && topicsWithIcons.length > 0) {
-    setActiveTopic(topicsWithIcons[0].id);
-  }
+  const currentTopic = topicsWithIcons.find((t) => t.id === activeTopic) || topicsWithIcons[0];
 
   if (isLoading) {
     return (
