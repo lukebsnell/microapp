@@ -1,13 +1,59 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import path from "path";
+import { promises as fs } from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  app.get("/api/topics", async (req, res) => {
+    try {
+      const topics = await storage.getTopics();
+      res.json(topics);
+    } catch (error) {
+      console.error("Error fetching topics:", error);
+      res.status(500).json({ error: "Failed to fetch topics" });
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/topics/:topicId/pdf", async (req, res) => {
+    try {
+      const { topicId } = req.params;
+      const topicDir = path.join(process.cwd(), "uploads", "topics", topicId);
+      const files = await fs.readdir(topicDir);
+      const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
+      
+      if (!pdfFile) {
+        return res.status(404).json({ error: "PDF not found" });
+      }
+
+      const pdfPath = path.join(topicDir, pdfFile);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.sendFile(pdfPath);
+    } catch (error) {
+      console.error("Error serving PDF:", error);
+      res.status(500).json({ error: "Failed to serve PDF" });
+    }
+  });
+
+  app.get("/api/topics/:topicId/audio", async (req, res) => {
+    try {
+      const { topicId } = req.params;
+      const topicDir = path.join(process.cwd(), "uploads", "topics", topicId);
+      const files = await fs.readdir(topicDir);
+      const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
+      
+      if (!audioFile) {
+        return res.status(404).json({ error: "Audio file not found" });
+      }
+
+      const audioPath = path.join(topicDir, audioFile);
+      res.setHeader('Content-Type', 'audio/wav');
+      res.sendFile(audioPath);
+    } catch (error) {
+      console.error("Error serving audio:", error);
+      res.status(500).json({ error: "Failed to serve audio" });
+    }
+  });
 
   const httpServer = createServer(app);
 
