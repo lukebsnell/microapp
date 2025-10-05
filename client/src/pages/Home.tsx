@@ -1,91 +1,60 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { TopicContent } from "@/components/TopicContent";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Bug, Dna, FlaskConical, Microscope, Activity } from "lucide-react";
+import type { Topic } from "@shared/schema";
 
-const mockTopics = [
-  { 
-    id: "1", 
-    title: "Gram Positive Cocci", 
-    category: "Bacterial Infections", 
-    icon: Bug, 
-    hasPdf: false, 
-    hasAudio: true,
-    audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-  },
-  { 
-    id: "2", 
-    title: "Gram Negative Bacilli", 
-    category: "Bacterial Infections", 
-    icon: Bug, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "3", 
-    title: "Mycobacterial Infections", 
-    category: "Bacterial Infections", 
-    icon: Bug, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "4", 
-    title: "RNA Viruses", 
-    category: "Viral Infections", 
-    icon: Dna, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "5", 
-    title: "DNA Viruses", 
-    category: "Viral Infections", 
-    icon: Dna, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "6", 
-    title: "Candida Species", 
-    category: "Fungal Infections", 
-    icon: FlaskConical, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "7", 
-    title: "Aspergillus Species", 
-    category: "Fungal Infections", 
-    icon: FlaskConical, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "8", 
-    title: "Protozoa", 
-    category: "Parasitology", 
-    icon: Microscope, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-  { 
-    id: "9", 
-    title: "Helminths", 
-    category: "Parasitology", 
-    icon: Activity, 
-    hasPdf: false, 
-    hasAudio: false 
-  },
-];
+const getIconForCategory = (category: string) => {
+  if (category === "Bacterial Infections") return Bug;
+  if (category === "Viral Infections") return Dna;
+  if (category === "Fungal Infections") return FlaskConical;
+  if (category === "Parasitology") return Microscope;
+  return Activity;
+};
 
 export default function Home() {
-  const [activeTopic, setActiveTopic] = useState("1");
+  const [activeTopic, setActiveTopic] = useState<string | null>(null);
 
-  const currentTopic = mockTopics.find((t) => t.id === activeTopic) || mockTopics[0];
+  const { data: topics = [], isLoading } = useQuery<Topic[]>({
+    queryKey: ["/api/topics"],
+  });
+
+  const topicsWithIcons = topics.map(topic => ({
+    ...topic,
+    icon: getIconForCategory(topic.category),
+  }));
+
+  const currentTopic = topicsWithIcons.find((t) => t.id === activeTopic) || topicsWithIcons[0];
+
+  if (!activeTopic && topicsWithIcons.length > 0) {
+    setActiveTopic(topicsWithIcons[0].id);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p className="text-muted-foreground">Loading topics...</p>
+      </div>
+    );
+  }
+
+  if (!currentTopic) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Microscope className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h2 className="text-xl font-semibold mb-2">No topics found</h2>
+          <p className="text-sm text-muted-foreground">
+            Upload your study materials to get started
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const sidebarStyle = {
     "--sidebar-width": "20rem",
@@ -96,8 +65,8 @@ export default function Home() {
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <AppSidebar
-          topics={mockTopics}
-          activeTopic={activeTopic}
+          topics={topicsWithIcons}
+          activeTopic={activeTopic || ""}
           onTopicSelect={setActiveTopic}
         />
         <div className="flex flex-col flex-1">
@@ -112,7 +81,7 @@ export default function Home() {
       </div>
       <AudioPlayer
         topicTitle={currentTopic.title}
-        audioSrc={currentTopic.audioSrc}
+        audioSrc={currentTopic.audioPath}
       />
     </SidebarProvider>
   );

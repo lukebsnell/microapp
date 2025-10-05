@@ -1,11 +1,16 @@
 import { TopicContent } from "../TopicContent";
+import { Bug } from "lucide-react";
 
 const mockTopic = {
-  id: "1",
+  id: "gram-positive-cocci",
   title: "Gram Positive Cocci",
   category: "Bacterial Infections",
-  pdfSrc: undefined,
-  audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+  folderPath: "gram-positive-cocci",
+  pdfPath: undefined,
+  audioPath: undefined,
+  hasPdf: false,
+  hasAudio: false,
+  icon: Bug,
 };
 
 export default function TopicContentExample() {
