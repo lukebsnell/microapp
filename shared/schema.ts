@@ -16,3 +16,14 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export interface Topic {
+  id: string;
+  title: string;
+  category: string;
+  folderPath: string;
+  pdfPath?: string;
+  audioPath?: string;
+  hasPdf: boolean;
+  hasAudio: boolean;
+}
