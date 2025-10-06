@@ -5,6 +5,8 @@ import path from "path";
 import { promises as fs } from "fs";
 import { convertAndSavePDF } from "./pdfProcessor";
 import { convertAndSaveDocx } from "./docxProcessor";
+import { getUncachableResendClient } from "./resendClient";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/topics", async (req, res) => {
@@ -198,14 +200,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       try {
         const files = await fs.readdir(topicDir);
-        const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
+        const audioFile = files.find(f => {
+          const ext = f.toLowerCase();
+          return ext.endsWith('.mp3') || ext.endsWith('.wav');
+        });
         
         if (!audioFile) {
           return res.status(404).json({ error: "Audio file not found" });
         }
 
         const audioPath = path.join(topicDir, audioFile);
-        res.setHeader('Content-Type', 'audio/wav');
+        const contentType = audioFile.toLowerCase().endsWith('.mp3') ? 'audio/mpeg' : 'audio/wav';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Accept-Ranges', 'bytes');
         res.sendFile(audioPath);
       } catch (err: any) {
         if (err.code === 'ENOENT') {
@@ -216,6 +223,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error serving audio:", error);
       res.status(500).json({ error: "Failed to serve audio" });
+    }
+  });
+
+  const feedbackSchema = z.object({
+    type: z.enum(['feedback', 'request']),
+    message: z.string().min(10, 'Message must be at least 10 characters'),
+    topicId: z.string().optional(),
+    topicTitle: z.string().optional(),
+    category: z.string().optional(),
+  });
+
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const validation = feedbackSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: "Invalid request", 
+          details: validation.error.errors 
+        });
+      }
+
+      const { type, message, topicId, topicTitle, category } = validation.data;
+
+      const { client, fromEmail } = await getUncachableResendClient();
+
+      let emailSubject = type === 'feedback' 
+        ? 'FRCPath App - Topic Feedback'
+        : 'FRCPath App - New Topic Request';
+
+      let emailBody = type === 'feedback'
+        ? `<h2>Topic Feedback</h2>
+           ${topicTitle ? `<p><strong>Topic:</strong> ${topicTitle}</p>` : ''}
+           ${category ? `<p><strong>Category:</strong> ${category}</p>` : ''}
+           ${topicId ? `<p><strong>Topic ID:</strong> ${topicId}</p>` : ''}
+           <p><strong>Message:</strong></p>
+           <p>${message.replace(/\n/g, '<br>')}</p>`
+        : `<h2>New Topic Request</h2>
+           <p><strong>Requested Topic:</strong></p>
+           <p>${message.replace(/\n/g, '<br>')}</p>`;
+
+      await client.emails.send({
+        from: fromEmail,
+        to: fromEmail,
+        subject: emailSubject,
+        html: emailBody,
+      });
+
+      res.json({ success: true, message: 'Feedback sent successfully' });
+    } catch (error) {
+      console.error("Error sending feedback:", error);
+      res.status(500).json({ error: "Failed to send feedback" });
     }
   });
 
