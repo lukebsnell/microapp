@@ -23,7 +23,9 @@ export interface Topic {
   category: string;
   folderPath: string;
   pdfPath?: string;
+  htmlPath?: string;
   audioPath?: string;
   hasPdf: boolean;
+  hasHtml: boolean;
   hasAudio: boolean;
 }

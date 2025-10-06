@@ -67,6 +67,7 @@ export class MemStorage implements IStorage {
         const files = await fs.readdir(topicPath);
         
         const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
+        const htmlFile = files.find(f => f.toLowerCase().endsWith('.html'));
         const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
 
         const title = topicFolder.name
@@ -82,8 +83,10 @@ export class MemStorage implements IStorage {
           category: categoryTitle,
           folderPath: topicId,
           pdfPath: pdfFile ? `/api/topics/${topicId}/pdf` : undefined,
+          htmlPath: htmlFile ? `/api/topics/${topicId}/html` : undefined,
           audioPath: audioFile ? `/api/topics/${topicId}/audio` : undefined,
           hasPdf: !!pdfFile,
+          hasHtml: !!htmlFile,
           hasAudio: !!audioFile,
         });
       }
