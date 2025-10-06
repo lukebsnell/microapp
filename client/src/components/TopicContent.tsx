@@ -1,5 +1,5 @@
 import { FileText, Headphones } from "lucide-react";
-import { PDFViewer } from "./PDFViewer";
+import { HTMLContentViewer } from "./HTMLContentViewer";
 import { Badge } from "@/components/ui/badge";
 
 import type { Topic } from "@shared/schema";
@@ -9,6 +9,9 @@ interface TopicContentProps {
 }
 
 export function TopicContent({ topic }: TopicContentProps) {
+  // Use HTML path if available, fallback to PDF path for conversion
+  const contentSrc = topic.htmlPath || (topic.pdfPath ? topic.pdfPath.replace('/pdf', '/html') : undefined);
+  
   return (
     <div className="flex flex-col h-full">
       <div className="border-b p-4 flex items-center justify-between gap-4">
@@ -22,7 +25,7 @@ export function TopicContent({ topic }: TopicContentProps) {
           {topic.hasPdf && (
             <Badge variant="outline" className="gap-1">
               <FileText className="h-3 w-3" />
-              PDF
+              Content
             </Badge>
           )}
           {topic.hasAudio && (
@@ -35,7 +38,7 @@ export function TopicContent({ topic }: TopicContentProps) {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <PDFViewer pdfSrc={topic.pdfPath} topicTitle={topic.title} />
+        <HTMLContentViewer htmlSrc={contentSrc} topicTitle={topic.title} />
       </div>
     </div>
   );
