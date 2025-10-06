@@ -12,8 +12,10 @@ interface TopicContentProps {
 export function TopicContent({ topic }: TopicContentProps) {
   const [, navigate] = useLocation();
   
-  // Use HTML path if available, fallback to PDF path for conversion
-  const contentSrc = topic.htmlPath || (topic.pdfPath ? topic.pdfPath.replace('/pdf', '/html') : undefined);
+  // Use HTML path if available, fallback to PDF or DOCX path for conversion
+  const contentSrc = topic.htmlPath || 
+    topic.pdfPath?.replace('/pdf', '/html') || 
+    topic.docxPath?.replace('/docx', '/html');
   
   const handleFeedback = () => {
     const params = new URLSearchParams({
