@@ -44,6 +44,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const pdfPath = path.join(topicDir, pdfFile);
         res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'inline');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
         res.sendFile(pdfPath);
       } catch (err: any) {
         if (err.code === 'ENOENT') {
