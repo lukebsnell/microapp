@@ -1,4 +1,4 @@
-import { MessageSquare, Flag } from "lucide-react";
+import { MessageSquare, Home } from "lucide-react";
 import { HTMLContentViewer } from "./HTMLContentViewer";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -8,11 +8,11 @@ import type { Topic } from "@shared/schema";
 
 interface TopicContentProps {
   topic: Topic & { icon?: any };
+  onNavigateHome: () => void;
 }
 
-export function TopicContent({ topic }: TopicContentProps) {
+export function TopicContent({ topic, onNavigateHome }: TopicContentProps) {
   const [, navigate] = useLocation();
-  const { toast } = useToast();
   
   // Use HTML path if available, fallback to PDF or DOCX path for conversion
   const contentSrc = topic.htmlPath || 
@@ -28,13 +28,6 @@ export function TopicContent({ topic }: TopicContentProps) {
     });
     navigate(`/feedback?${params.toString()}`);
   };
-
-  const handleHold = () => {
-    toast({
-      title: "Topic marked for review",
-      description: `"${topic.title}" has been added to your review list`,
-    });
-  };
   
   return (
     <div className="flex flex-col h-full">
@@ -49,12 +42,12 @@ export function TopicContent({ topic }: TopicContentProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleHold}
+            onClick={onNavigateHome}
             className="gap-2"
-            data-testid="button-hold"
+            data-testid="button-home"
           >
-            <Flag className="h-4 w-4" />
-            Hold
+            <Home className="h-4 w-4" />
+            Home
           </Button>
           <Button
             variant="outline"

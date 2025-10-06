@@ -60,7 +60,7 @@ export default function Home() {
           </header>
           <main className="flex-1 overflow-hidden pb-20">
             {currentTopic ? (
-              <TopicContent topic={currentTopic} />
+              <TopicContent topic={currentTopic} onNavigateHome={() => setActiveTopic(null)} />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="text-center">
