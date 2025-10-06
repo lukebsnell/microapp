@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import path from "path";
 import { promises as fs } from "fs";
+import { convertAndSavePDF } from "./pdfProcessor";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/topics", async (req, res) => {
@@ -12,6 +13,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching topics:", error);
       res.status(500).json({ error: "Failed to fetch topics" });
+    }
+  });
+
+  app.get("/api/topics/:topicId(*)/html", async (req, res) => {
+    try {
+      const { topicId } = req.params;
+      
+      // topicId should be in format: category/topic
+      const parts = topicId.split('/');
+      if (parts.length !== 2) {
+        return res.status(400).json({ error: "Invalid topic ID format" });
+      }
+
+      const [category, topic] = parts;
+      
+      // Sanitize both parts to prevent directory traversal
+      const sanitizedCategory = path.basename(category);
+      const sanitizedTopic = path.basename(topic);
+      
+      if (sanitizedCategory !== category || sanitizedTopic !== topic || 
+          category.includes('..') || topic.includes('..')) {
+        return res.status(400).json({ error: "Invalid topic ID" });
+      }
+
+      const topicsRoot = path.join(process.cwd(), "uploads", "topics");
+      const topicDir = path.join(topicsRoot, sanitizedCategory, sanitizedTopic);
+      
+      // Verify resolved path is within topics root
+      const resolvedPath = path.resolve(topicDir);
+      if (!resolvedPath.startsWith(path.resolve(topicsRoot))) {
+        return res.status(400).json({ error: "Invalid topic ID" });
+      }
+
+      try {
+        const files = await fs.readdir(topicDir);
+        let htmlFile = files.find(f => f.toLowerCase().endsWith('.html'));
+        
+        // If HTML doesn't exist but PDF does, convert it
+        if (!htmlFile) {
+          const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
+          if (pdfFile) {
+            console.log(`Converting PDF to HTML for ${topicId}...`);
+            const pdfPath = path.join(topicDir, pdfFile);
+            await convertAndSavePDF(pdfPath);
+            htmlFile = pdfFile.replace(/\.pdf$/i, '.html').split('/').pop();
+          }
+        }
+        
+        if (!htmlFile) {
+          return res.status(404).json({ error: "No content found" });
+        }
+
+        const htmlPath = path.join(topicDir, htmlFile);
+        const htmlContent = await fs.readFile(htmlPath, 'utf-8');
+        
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.send(htmlContent);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          return res.status(404).json({ error: "Topic not found" });
+        }
+        throw err;
+      }
+    } catch (error) {
+      console.error("Error serving HTML:", error);
+      res.status(500).json({ error: "Failed to serve HTML" });
     }
   });
 
