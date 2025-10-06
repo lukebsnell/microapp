@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Pause, SkipBack, SkipForward, Volume2 } from "lucide-react";
+import { Play, Pause, SkipBack, SkipForward, Volume2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +89,18 @@ export function AudioPlayer({ topicTitle, audioSrc }: AudioPlayerProps) {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const handleDownload = () => {
+    if (!audioSrc) return;
+    
+    const downloadUrl = `${audioSrc}?download=1`;
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-card">
       <audio ref={audioRef} src={audioSrc} />
@@ -149,6 +161,16 @@ export function AudioPlayer({ topicTitle, audioSrc }: AudioPlayerProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleDownload}
+            disabled={!audioSrc}
+            data-testid="button-download"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+
           <Badge
             variant="outline"
             className="cursor-pointer hover-elevate"
