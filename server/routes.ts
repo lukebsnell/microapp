@@ -251,8 +251,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { client, fromEmail } = await getUncachableResendClient();
 
       let emailSubject = type === 'feedback' 
-        ? 'FRCPath App - Topic Feedback'
-        : 'FRCPath App - New Topic Request';
+        ? 'MicroApp - Topic Feedback'
+        : 'MicroApp - New Topic Request';
 
       let emailBody = type === 'feedback'
         ? `<h2>Topic Feedback</h2>

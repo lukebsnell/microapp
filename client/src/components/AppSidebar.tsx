@@ -68,8 +68,8 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
         <div className="flex items-center gap-2 mb-4">
           <Microscope className="h-6 w-6 text-primary" />
           <div>
-            <h2 className="font-semibold text-base">FRCPath Part 2</h2>
-            <p className="text-xs text-muted-foreground">Microbiology</p>
+            <h2 className="font-semibold text-base">MicroApp</h2>
+            <p className="text-xs text-muted-foreground">Microbiology Revision</p>
           </div>
         </div>
         <div className="relative">
