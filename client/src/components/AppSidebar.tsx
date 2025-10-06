@@ -1,4 +1,4 @@
-import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search, ChevronDown } from "lucide-react";
+import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search, ChevronDown, MessageSquare, FileQuestion } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,9 +9,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useLocation } from "wouter";
 
 interface Topic {
   id: string;
@@ -29,6 +32,8 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarProps) {
+  const [, navigate] = useLocation();
+  
   const groupedTopics = topics.reduce((acc, topic) => {
     if (!acc[topic.category]) {
       acc[topic.category] = [];
@@ -93,6 +98,18 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
           </Collapsible>
         ))}
       </SidebarContent>
+
+      <SidebarFooter className="p-4 border-t space-y-2">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2"
+          onClick={() => navigate('/feedback?type=request')}
+          data-testid="button-request-topic"
+        >
+          <FileQuestion className="h-4 w-4" />
+          Request a Topic
+        </Button>
+      </SidebarFooter>
     </Sidebar>
   );
 }
