@@ -9,10 +9,12 @@ import { Bug, Dna, FlaskConical, Microscope, Activity } from "lucide-react";
 import type { Topic } from "@shared/schema";
 
 const getIconForCategory = (category: string) => {
-  if (category === "Bacterial Infections") return Bug;
-  if (category === "Viral Infections") return Dna;
-  if (category === "Fungal Infections") return FlaskConical;
-  if (category === "Parasitology") return Microscope;
+  const lowerCategory = category.toLowerCase();
+  if (lowerCategory.includes("bacteria")) return Bug;
+  if (lowerCategory.includes("virus")) return Dna;
+  if (lowerCategory.includes("fung")) return FlaskConical;
+  if (lowerCategory.includes("parasit")) return Microscope;
+  if (lowerCategory.includes("laboratory")) return Activity;
   return Activity;
 };
 
