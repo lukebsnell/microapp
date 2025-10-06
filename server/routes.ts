@@ -15,18 +15,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/topics/:topicId/pdf", async (req, res) => {
+  app.get("/api/topics/:topicId(*)/pdf", async (req, res) => {
     try {
       const { topicId } = req.params;
       
-      // Sanitize topicId to prevent directory traversal
-      const sanitizedTopicId = path.basename(topicId);
-      if (sanitizedTopicId !== topicId || topicId.includes('..')) {
+      // topicId should be in format: category/topic
+      const parts = topicId.split('/');
+      if (parts.length !== 2) {
+        return res.status(400).json({ error: "Invalid topic ID format" });
+      }
+
+      const [category, topic] = parts;
+      
+      // Sanitize both parts to prevent directory traversal
+      const sanitizedCategory = path.basename(category);
+      const sanitizedTopic = path.basename(topic);
+      
+      if (sanitizedCategory !== category || sanitizedTopic !== topic || 
+          category.includes('..') || topic.includes('..')) {
         return res.status(400).json({ error: "Invalid topic ID" });
       }
 
       const topicsRoot = path.join(process.cwd(), "uploads", "topics");
-      const topicDir = path.join(topicsRoot, sanitizedTopicId);
+      const topicDir = path.join(topicsRoot, sanitizedCategory, sanitizedTopic);
       
       // Verify resolved path is within topics root
       const resolvedPath = path.resolve(topicDir);
@@ -59,18 +70,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/topics/:topicId/audio", async (req, res) => {
+  app.get("/api/topics/:topicId(*)/audio", async (req, res) => {
     try {
       const { topicId } = req.params;
       
-      // Sanitize topicId to prevent directory traversal
-      const sanitizedTopicId = path.basename(topicId);
-      if (sanitizedTopicId !== topicId || topicId.includes('..')) {
+      // topicId should be in format: category/topic
+      const parts = topicId.split('/');
+      if (parts.length !== 2) {
+        return res.status(400).json({ error: "Invalid topic ID format" });
+      }
+
+      const [category, topic] = parts;
+      
+      // Sanitize both parts to prevent directory traversal
+      const sanitizedCategory = path.basename(category);
+      const sanitizedTopic = path.basename(topic);
+      
+      if (sanitizedCategory !== category || sanitizedTopic !== topic || 
+          category.includes('..') || topic.includes('..')) {
         return res.status(400).json({ error: "Invalid topic ID" });
       }
 
       const topicsRoot = path.join(process.cwd(), "uploads", "topics");
-      const topicDir = path.join(topicsRoot, sanitizedTopicId);
+      const topicDir = path.join(topicsRoot, sanitizedCategory, sanitizedTopic);
       
       // Verify resolved path is within topics root
       const resolvedPath = path.resolve(topicDir);
