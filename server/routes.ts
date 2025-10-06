@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import path from "path";
 import { promises as fs } from "fs";
 import { convertAndSavePDF } from "./pdfProcessor";
+import { convertAndSaveDocx } from "./docxProcessor";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/topics", async (req, res) => {
@@ -50,17 +51,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const files = await fs.readdir(topicDir);
         let htmlFile = files.find(f => f.toLowerCase().endsWith('.html'));
         
-        // If HTML doesn't exist but PDF does, convert it
+        // If HTML doesn't exist, try to convert DOCX or PDF
         if (!htmlFile) {
+          // Prioritize DOCX over PDF
+          const docxFile = files.find(f => f.toLowerCase().endsWith('.docx'));
           const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
-          if (pdfFile) {
+          
+          if (docxFile) {
+            console.log(`Converting DOCX to HTML for ${topicId}...`);
+            const docxPath = path.join(topicDir, docxFile);
+            
+            try {
+              await convertAndSaveDocx(docxPath);
+              htmlFile = docxFile.replace(/\.docx$/i, '.html').split('/').pop();
+              console.log(`DOCX conversion complete for ${topicId}`);
+            } catch (conversionError) {
+              console.error(`DOCX conversion failed for ${topicId}:`, conversionError);
+              return res.status(503).json({ 
+                error: "Failed to convert DOCX to HTML",
+                details: conversionError instanceof Error ? conversionError.message : 'Unknown error'
+              });
+            }
+          } else if (pdfFile) {
             console.log(`Converting PDF to HTML for ${topicId}...`);
             const pdfPath = path.join(topicDir, pdfFile);
             
             try {
               await convertAndSavePDF(pdfPath);
               htmlFile = pdfFile.replace(/\.pdf$/i, '.html').split('/').pop();
-              console.log(`Conversion complete for ${topicId}`);
+              console.log(`PDF conversion complete for ${topicId}`);
             } catch (conversionError) {
               console.error(`PDF conversion failed for ${topicId}:`, conversionError);
               return res.status(503).json({ 

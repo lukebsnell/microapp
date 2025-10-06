@@ -22,9 +22,11 @@ export interface Topic {
   title: string;
   category: string;
   folderPath: string;
+  docxPath?: string;
   pdfPath?: string;
   htmlPath?: string;
   audioPath?: string;
+  hasDocx: boolean;
   hasPdf: boolean;
   hasHtml: boolean;
   hasAudio: boolean;

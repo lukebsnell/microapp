@@ -66,9 +66,16 @@ export class MemStorage implements IStorage {
         const topicPath = path.join(categoryPath, topicFolder.name);
         const files = await fs.readdir(topicPath);
         
+        // Prioritize DOCX over PDF for content
+        const docxFile = files.find(f => f.toLowerCase().endsWith('.docx'));
         const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
         const htmlFile = files.find(f => f.toLowerCase().endsWith('.html'));
-        const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
+        
+        // Support both MP3 and WAV audio files
+        const audioFile = files.find(f => 
+          f.toLowerCase().endsWith('.mp3') || 
+          f.toLowerCase().endsWith('.wav')
+        );
 
         const title = topicFolder.name
           .split('-')
@@ -82,9 +89,11 @@ export class MemStorage implements IStorage {
           title,
           category: categoryTitle,
           folderPath: topicId,
+          docxPath: docxFile ? `/api/topics/${topicId}/docx` : undefined,
           pdfPath: pdfFile ? `/api/topics/${topicId}/pdf` : undefined,
           htmlPath: htmlFile ? `/api/topics/${topicId}/html` : undefined,
           audioPath: audioFile ? `/api/topics/${topicId}/audio` : undefined,
+          hasDocx: !!docxFile,
           hasPdf: !!pdfFile,
           hasHtml: !!htmlFile,
           hasAudio: !!audioFile,
