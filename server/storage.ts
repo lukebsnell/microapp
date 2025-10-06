@@ -46,55 +46,57 @@ export class MemStorage implements IStorage {
       return [];
     }
 
-    const folders = await fs.readdir(topicsDir, { withFileTypes: true });
+    const categoryFolders = await fs.readdir(topicsDir, { withFileTypes: true });
     const topics: Topic[] = [];
 
-    for (const folder of folders) {
-      if (!folder.isDirectory()) continue;
+    for (const categoryFolder of categoryFolders) {
+      if (!categoryFolder.isDirectory()) continue;
 
-      const folderPath = path.join(topicsDir, folder.name);
-      const files = await fs.readdir(folderPath);
-      
-      const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
-      const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
+      const categoryPath = path.join(topicsDir, categoryFolder.name);
+      const topicFolders = await fs.readdir(categoryPath, { withFileTypes: true });
 
-      const title = folder.name
+      const categoryTitle = categoryFolder.name
         .split('-')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
-      const category = this.categorizeTopicByName(folder.name);
+      for (const topicFolder of topicFolders) {
+        if (!topicFolder.isDirectory()) continue;
 
-      topics.push({
-        id: folder.name,
-        title,
-        category,
-        folderPath: folder.name,
-        pdfPath: pdfFile ? `/api/topics/${folder.name}/pdf` : undefined,
-        audioPath: audioFile ? `/api/topics/${folder.name}/audio` : undefined,
-        hasPdf: !!pdfFile,
-        hasAudio: !!audioFile,
-      });
+        const topicPath = path.join(categoryPath, topicFolder.name);
+        const files = await fs.readdir(topicPath);
+        
+        const pdfFile = files.find(f => f.toLowerCase().endsWith('.pdf'));
+        const audioFile = files.find(f => f.toLowerCase().endsWith('.wav'));
+
+        const title = topicFolder.name
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+
+        const topicId = `${categoryFolder.name}/${topicFolder.name}`;
+
+        topics.push({
+          id: topicId,
+          title,
+          category: categoryTitle,
+          folderPath: topicId,
+          pdfPath: pdfFile ? `/api/topics/${topicId}/pdf` : undefined,
+          audioPath: audioFile ? `/api/topics/${topicId}/audio` : undefined,
+          hasPdf: !!pdfFile,
+          hasAudio: !!audioFile,
+        });
+      }
     }
 
-    return topics.sort((a, b) => a.title.localeCompare(b.title));
+    return topics.sort((a, b) => {
+      if (a.category !== b.category) {
+        return a.category.localeCompare(b.category);
+      }
+      return a.title.localeCompare(b.title);
+    });
   }
 
-  private categorizeTopicByName(folderName: string): string {
-    if (folderName.includes('cocci') || folderName.includes('bacilli') || folderName.includes('mycobacterial')) {
-      return 'Bacterial Infections';
-    }
-    if (folderName.includes('virus')) {
-      return 'Viral Infections';
-    }
-    if (folderName.includes('candida') || folderName.includes('aspergillus') || folderName.includes('fungal')) {
-      return 'Fungal Infections';
-    }
-    if (folderName.includes('protozoa') || folderName.includes('helminth') || folderName.includes('parasit')) {
-      return 'Parasitology';
-    }
-    return 'Other Topics';
-  }
 }
 
 export const storage = new MemStorage();
