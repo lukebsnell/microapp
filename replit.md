@@ -2,9 +2,9 @@
 
 ## Overview
 
-This is an educational web application designed for medical professionals studying for the FRCPath Part 2 Microbiology examination. The application provides a structured revision platform that combines PDF study materials with audio lectures, organized by medical topic categories (Bacterial Infections, Viral Infections, Fungal Infections, and Parasitology).
+This is an educational web application designed for medical professionals studying for the FRCPath Part 2 Microbiology examination. The application provides a structured revision platform that combines PDF study materials with audio lectures, organized hierarchically by eight main categories: Laboratory, Bacteria, Fungi, Viruses, Parasites, Infection Control, Antimicrobials, and Built Environment.
 
-The app features a sidebar navigation system for browsing topics, an integrated PDF viewer for reading course materials, and an audio player for listening to lectures. It follows Material Design principles optimized for extended study sessions with support for both dark and light modes (dark mode is default).
+The app features a collapsible sidebar navigation system for browsing topics within categories, an integrated PDF viewer for reading course materials, and an audio player for listening to lectures. It follows Material Design principles optimized for extended study sessions with support for both dark and light modes (dark mode is default).
 
 ## User Preferences
 
@@ -35,13 +35,14 @@ Preferred communication style: Simple, everyday language.
 
 **Runtime**: Node.js with Express.js framework
 
-**API Structure**: RESTful API with two main endpoints:
-- `GET /api/topics` - Retrieves all available topics
-- `GET /api/topics/:topicId/pdf` - Serves PDF files for specific topics
+**API Structure**: RESTful API with three main endpoints:
+- `GET /api/topics` - Retrieves all available topics organized by category
+- `GET /api/topics/:categoryId/:topicId/pdf` - Serves PDF files for specific topics
+- `GET /api/topics/:categoryId/:topicId/audio` - Serves audio files for specific topics
 
-**File Storage Pattern**: Local filesystem-based storage where topics are organized in folder structure under `/uploads/topics/`. Each topic folder contains:
-- One PDF file (course content)
-- One WAV file (audio lecture)
+**File Storage Pattern**: Hierarchical filesystem-based storage with two-level organization:
+- Category folders (laboratory, bacteria, fungi, viruses, parasites, infection-control, antimicrobials, built-environment)
+- Topic folders within each category containing one PDF and one WAV file
 
 **Storage Abstraction**: Interface-based storage pattern (`IStorage`) currently implemented with in-memory storage (`MemStorage`) for user data, with filesystem scanning for topic content. This design allows for easy migration to database-backed storage.
 
@@ -51,13 +52,26 @@ Preferred communication style: Simple, everyday language.
 
 **User Data**: Currently using in-memory storage with interface-based design ready for database migration.
 
-**Content Storage**: File-based storage system where course materials are organized in a predefined folder structure:
+**Content Storage**: Hierarchical file-based storage system where course materials are organized by category:
 ```
 uploads/topics/
-  ├── gram-positive-cocci/
-  ├── gram-negative-bacilli/
-  ├── mycobacterial-infections/
-  └── [other topics]/
+  ├── laboratory/
+  ├── bacteria/
+  │   ├── gram-positive-cocci/
+  │   ├── gram-negative-bacilli/
+  │   └── mycobacterial-infections/
+  ├── fungi/
+  │   ├── aspergillus-species/
+  │   └── candida-species/
+  ├── viruses/
+  │   ├── dna-viruses/
+  │   └── rna-viruses/
+  ├── parasites/
+  │   ├── protozoa/
+  │   └── helminths/
+  ├── infection-control/
+  ├── antimicrobials/
+  └── built-environment/
 ```
 
 **Database Configuration**: Drizzle ORM configured with PostgreSQL support (via Neon Database serverless driver), though not yet actively used for content storage. Schema defines:
