@@ -1,4 +1,5 @@
-import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search, ChevronDown, MessageSquare, FileQuestion } from "lucide-react";
+import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search, ChevronDown, MessageSquare, FileQuestion, Wifi, WifiOff } from "lucide-react";
+import { useState, useEffect } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation } from "wouter";
+import { audioCacheService } from "@/lib/audioCache";
 
 interface Topic {
   id: string;
@@ -33,6 +35,21 @@ interface AppSidebarProps {
 
 export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarProps) {
   const [, navigate] = useLocation();
+  const [cachedTopics, setCachedTopics] = useState<Set<string>>(new Set());
+  
+  useEffect(() => {
+    async function checkCachedTopics() {
+      const cached = new Set<string>();
+      for (const topic of topics) {
+        if (await audioCacheService.isCached(topic.id)) {
+          cached.add(topic.id);
+        }
+      }
+      setCachedTopics(cached);
+    }
+    
+    checkCachedTopics();
+  }, [topics]);
   
   const groupedTopics = topics.reduce((acc, topic) => {
     if (!acc[topic.category]) {
@@ -78,6 +95,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
                   <SidebarMenu>
                     {categoryTopics.map((topic) => {
                       const Icon = topic.icon || FileText;
+                      const isCached = cachedTopics.has(topic.id);
                       return (
                         <SidebarMenuItem key={topic.id}>
                           <SidebarMenuButton
@@ -86,7 +104,12 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
                             data-testid={`button-topic-${topic.id}`}
                           >
                             <Icon className="h-4 w-4" />
-                            <span>{topic.title}</span>
+                            <span className="flex-1">{topic.title}</span>
+                            {isCached && (
+                              <span title="Available offline">
+                                <WifiOff className="h-3 w-3 text-primary" />
+                              </span>
+                            )}
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       );
