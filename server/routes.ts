@@ -171,7 +171,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/topics/:topicId(*)/audio", async (req, res) => {
     try {
       const { topicId } = req.params;
-      const isDownload = req.query.download === '1';
       
       // topicId should be in format: category/topic
       const parts = topicId.split('/');
@@ -212,16 +211,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         const audioPath = path.join(topicDir, audioFile);
         const contentType = audioFile.toLowerCase().endsWith('.mp3') ? 'audio/mpeg' : 'audio/wav';
-        const extension = audioFile.toLowerCase().endsWith('.mp3') ? 'mp3' : 'wav';
         
         res.setHeader('Content-Type', contentType);
         res.setHeader('Accept-Ranges', 'bytes');
-        
-        if (isDownload) {
-          const downloadName = `${topic.replace(/[^a-z0-9]/gi, '_')}_lecture.${extension}`;
-          res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
-        }
-        
         res.sendFile(audioPath);
       } catch (err: any) {
         if (err.code === 'ENOENT') {
