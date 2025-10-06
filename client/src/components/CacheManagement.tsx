@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { HardDrive, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { audioCacheService } from "@/lib/audioCache";
+import { useCacheNotification } from "@/contexts/CacheContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ interface CacheManagementProps {
 
 export function CacheManagement({ cachedCount, onCacheChange }: CacheManagementProps) {
   const [storageSize, setStorageSize] = useState<string>("0 MB");
+  const { notifyCacheChange } = useCacheNotification();
 
   useEffect(() => {
     async function calculateStorage() {
@@ -39,6 +41,7 @@ export function CacheManagement({ cachedCount, onCacheChange }: CacheManagementP
 
   const handleClearAll = async () => {
     await audioCacheService.clearAll();
+    notifyCacheChange();
     onCacheChange();
   };
 

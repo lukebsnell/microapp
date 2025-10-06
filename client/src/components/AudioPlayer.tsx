@@ -5,6 +5,7 @@ import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { audioCacheService } from "@/lib/audioCache";
 import { useToast } from "@/hooks/use-toast";
+import { useCacheNotification } from "@/contexts/CacheContext";
 
 interface AudioPlayerProps {
   topicId: string;
@@ -23,6 +24,7 @@ export function AudioPlayer({ topicId, topicTitle, audioSrc }: AudioPlayerProps)
   const [actualAudioSrc, setActualAudioSrc] = useState<string | undefined>(audioSrc);
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+  const { notifyCacheChange } = useCacheNotification();
 
   useEffect(() => {
     async function loadAudio() {
@@ -133,6 +135,8 @@ export function AudioPlayer({ topicId, topicTitle, audioSrc }: AudioPlayerProps)
         setActualAudioSrc(cachedUrl);
       }
 
+      notifyCacheChange();
+
       toast({
         title: "Saved for offline",
         description: "Audio is now available without internet connection",
@@ -156,6 +160,8 @@ export function AudioPlayer({ topicId, topicTitle, audioSrc }: AudioPlayerProps)
       await audioCacheService.removeAudio(topicId);
       setIsCached(false);
       setActualAudioSrc(audioSrc);
+
+      notifyCacheChange();
 
       toast({
         title: "Removed from offline storage",

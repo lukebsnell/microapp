@@ -18,6 +18,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useLocation } from "wouter";
 import { audioCacheService } from "@/lib/audioCache";
 import { CacheManagement } from "./CacheManagement";
+import { useCacheNotification } from "@/contexts/CacheContext";
 
 interface Topic {
   id: string;
@@ -37,6 +38,7 @@ interface AppSidebarProps {
 export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarProps) {
   const [, navigate] = useLocation();
   const [cachedTopics, setCachedTopics] = useState<Set<string>>(new Set());
+  const { cacheVersion } = useCacheNotification();
   
   useEffect(() => {
     async function checkCachedTopics() {
@@ -50,7 +52,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
     }
     
     checkCachedTopics();
-  }, [topics]);
+  }, [topics, cacheVersion]);
   
   const groupedTopics = topics.reduce((acc, topic) => {
     if (!acc[topic.category]) {

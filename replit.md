@@ -20,7 +20,7 @@ Preferred communication style: Simple, everyday language.
 
 **State Management**: 
 - React Query (TanStack Query) for server state management and data fetching
-- React Context for theme management (dark/light mode)
+- React Context for theme management (dark/light mode) and cache notifications
 - Local component state for UI interactions
 
 **Routing**: Wouter for lightweight client-side routing
@@ -30,6 +30,7 @@ Preferred communication style: Simple, everyday language.
 - Material Design principles for clear information hierarchy
 - Custom color palette optimized for medical content readability (deep navy-charcoal backgrounds, medical blue accents)
 - Typography: Inter font for medical terminology readability, JetBrains Mono for technical content
+- Offline audio caching using browser Cache API for in-app offline playback (audio files are never downloaded to device)
 
 ### Backend Architecture
 
@@ -79,6 +80,25 @@ uploads/topics/
 - Topic interface for content metadata
 
 **Design Rationale**: The filesystem approach simplifies content uploads and management for educational materials while the database infrastructure is prepared for future user progress tracking and authentication features.
+
+### Offline Audio Caching System
+
+**Technology**: Browser Cache API for secure, in-app offline audio storage
+
+**Features**:
+- Cache-first loading strategy: checks browser cache before streaming from network
+- "Save for Offline" button in audio player to cache topics for offline use
+- "Remove from Offline Storage" to clear cached audio
+- Real-time offline indicators in sidebar showing which topics are available offline
+- Cache management UI displaying storage usage and "Clear All" functionality
+- Cross-component cache state synchronization via React Context (CacheContext)
+
+**Implementation Details**:
+- Audio files cached using Cache API (never downloaded to device filesystem)
+- Metadata stored in localStorage to track cached topic IDs
+- Cache notifications propagated via CacheContext to keep UI in sync
+- Components: AudioPlayer (cache operations), AppSidebar (offline indicators), CacheManagement (storage stats)
+- Security: Audio remains within browser sandbox, no file system access required
 
 ### External Dependencies
 
