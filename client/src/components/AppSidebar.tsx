@@ -1,4 +1,4 @@
-import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search } from "lucide-react";
+import { FileText, Microscope, Bug, Dna, FlaskConical, BookOpen, Search, ChevronDown } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +11,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface Topic {
   id: string;
@@ -59,28 +60,37 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
       
       <SidebarContent>
         {Object.entries(groupedTopics).map(([category, categoryTopics]) => (
-          <SidebarGroup key={category}>
-            <SidebarGroupLabel>{category}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {categoryTopics.map((topic) => {
-                  const Icon = topic.icon || FileText;
-                  return (
-                    <SidebarMenuItem key={topic.id}>
-                      <SidebarMenuButton
-                        onClick={() => onTopicSelect(topic.id)}
-                        isActive={activeTopic === topic.id}
-                        data-testid={`button-topic-${topic.id}`}
-                      >
-                        <Icon className="h-4 w-4" />
-                        <span>{topic.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <Collapsible key={category} defaultOpen className="group/collapsible">
+            <SidebarGroup>
+              <SidebarGroupLabel asChild>
+                <CollapsibleTrigger className="flex w-full items-center justify-between hover-elevate active-elevate-2" data-testid={`button-category-${category.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <span>{category}</span>
+                  <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {categoryTopics.map((topic) => {
+                      const Icon = topic.icon || FileText;
+                      return (
+                        <SidebarMenuItem key={topic.id}>
+                          <SidebarMenuButton
+                            onClick={() => onTopicSelect(topic.id)}
+                            isActive={activeTopic === topic.id}
+                            data-testid={`button-topic-${topic.id}`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span>{topic.title}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </SidebarGroup>
+          </Collapsible>
         ))}
       </SidebarContent>
     </Sidebar>
