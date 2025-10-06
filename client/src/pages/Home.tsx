@@ -30,33 +30,12 @@ export default function Home() {
     icon: getIconForCategory(topic.category),
   }));
 
-  // Set default active topic in useEffect to avoid render-time state updates
-  useEffect(() => {
-    if (!activeTopic && topicsWithIcons.length > 0) {
-      setActiveTopic(topicsWithIcons[0].id);
-    }
-  }, [activeTopic, topicsWithIcons]);
-
-  const currentTopic = topicsWithIcons.find((t) => t.id === activeTopic) || topicsWithIcons[0];
+  const currentTopic = topicsWithIcons.find((t) => t.id === activeTopic);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <p className="text-muted-foreground">Loading topics...</p>
-      </div>
-    );
-  }
-
-  if (!currentTopic) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <Microscope className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-          <h2 className="text-xl font-semibold mb-2">No topics found</h2>
-          <p className="text-sm text-muted-foreground">
-            Upload your study materials to get started
-          </p>
-        </div>
       </div>
     );
   }
@@ -80,15 +59,27 @@ export default function Home() {
             <ThemeToggle />
           </header>
           <main className="flex-1 overflow-hidden pb-20">
-            <TopicContent topic={currentTopic} />
+            {currentTopic ? (
+              <TopicContent topic={currentTopic} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">🔬</div>
+                  <h1 className="text-4xl font-bold mb-2" data-testid="text-app-title">MicroApp</h1>
+                  <p className="text-muted-foreground">Select a topic from the sidebar to begin</p>
+                </div>
+              </div>
+            )}
           </main>
         </div>
       </div>
-      <AudioPlayer
-        topicId={currentTopic.id}
-        topicTitle={currentTopic.title}
-        audioSrc={currentTopic.audioPath}
-      />
+      {currentTopic && (
+        <AudioPlayer
+          topicId={currentTopic.id}
+          topicTitle={currentTopic.title}
+          audioSrc={currentTopic.audioPath}
+        />
+      )}
     </SidebarProvider>
   );
 }
