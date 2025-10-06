@@ -1,7 +1,8 @@
-import { MessageSquare } from "lucide-react";
+import { MessageSquare, Flag } from "lucide-react";
 import { HTMLContentViewer } from "./HTMLContentViewer";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 import type { Topic } from "@shared/schema";
 
@@ -11,6 +12,7 @@ interface TopicContentProps {
 
 export function TopicContent({ topic }: TopicContentProps) {
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   
   // Use HTML path if available, fallback to PDF or DOCX path for conversion
   const contentSrc = topic.htmlPath || 
@@ -26,6 +28,13 @@ export function TopicContent({ topic }: TopicContentProps) {
     });
     navigate(`/feedback?${params.toString()}`);
   };
+
+  const handleHold = () => {
+    toast({
+      title: "Topic marked for review",
+      description: `"${topic.title}" has been added to your review list`,
+    });
+  };
   
   return (
     <div className="flex flex-col h-full">
@@ -36,16 +45,28 @@ export function TopicContent({ topic }: TopicContentProps) {
           </h1>
           <p className="text-sm text-muted-foreground">{topic.category}</p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleFeedback}
-          className="gap-2"
-          data-testid="button-feedback"
-        >
-          <MessageSquare className="h-4 w-4" />
-          Feedback
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleHold}
+            className="gap-2"
+            data-testid="button-hold"
+          >
+            <Flag className="h-4 w-4" />
+            Hold
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleFeedback}
+            className="gap-2"
+            data-testid="button-feedback"
+          >
+            <MessageSquare className="h-4 w-4" />
+            Feedback
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
