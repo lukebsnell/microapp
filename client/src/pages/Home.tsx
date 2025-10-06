@@ -85,6 +85,7 @@ export default function Home() {
         </div>
       </div>
       <AudioPlayer
+        topicId={currentTopic.id}
         topicTitle={currentTopic.title}
         audioSrc={currentTopic.audioPath}
       />
