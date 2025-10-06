@@ -6,22 +6,36 @@ interface ProcessedPDF {
   text: string;
 }
 
-async function getPdfParser() {
-  const pdfParse = await import("pdf-parse");
-  return (pdfParse as any).default || pdfParse;
-}
-
 export async function processPDF(pdfPath: string): Promise<ProcessedPDF> {
-  const pdf = await getPdfParser();
-  const dataBuffer = await fs.readFile(pdfPath);
-  const data = await pdf(dataBuffer);
-  
-  const html = convertTextToHTML(data.text);
-  
-  return {
-    html,
-    text: data.text,
-  };
+  try {
+    // Import pdf-parse and handle different module export patterns
+    const pdfModule = await import("pdf-parse");
+    
+    // Try different export patterns: default (production), pdf (dev), or module itself
+    const pdf = pdfModule.default || (pdfModule as any).pdf || pdfModule;
+    
+    if (typeof pdf !== 'function') {
+      const availableExports = Object.keys(pdfModule).join(', ');
+      throw new Error(`pdf-parse module did not export a callable function. Available exports: ${availableExports}`);
+    }
+    
+    const dataBuffer = await fs.readFile(pdfPath);
+    const data = await pdf(dataBuffer);
+    
+    if (!data || typeof data.text !== 'string') {
+      throw new Error('PDF parsing did not return valid text content');
+    }
+    
+    const html = convertTextToHTML(data.text);
+    
+    return {
+      html,
+      text: data.text,
+    };
+  } catch (error) {
+    console.error('Error processing PDF:', pdfPath, error);
+    throw error;
+  }
 }
 
 function convertTextToHTML(text: string): string {

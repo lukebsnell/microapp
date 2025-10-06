@@ -56,8 +56,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (pdfFile) {
             console.log(`Converting PDF to HTML for ${topicId}...`);
             const pdfPath = path.join(topicDir, pdfFile);
-            await convertAndSavePDF(pdfPath);
-            htmlFile = pdfFile.replace(/\.pdf$/i, '.html').split('/').pop();
+            
+            try {
+              await convertAndSavePDF(pdfPath);
+              htmlFile = pdfFile.replace(/\.pdf$/i, '.html').split('/').pop();
+              console.log(`Conversion complete for ${topicId}`);
+            } catch (conversionError) {
+              console.error(`PDF conversion failed for ${topicId}:`, conversionError);
+              return res.status(503).json({ 
+                error: "Failed to convert PDF to HTML",
+                details: conversionError instanceof Error ? conversionError.message : 'Unknown error'
+              });
+            }
           }
         }
         
