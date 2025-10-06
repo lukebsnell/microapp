@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useLocation } from "wouter";
 import { audioCacheService } from "@/lib/audioCache";
+import { CacheManagement } from "./CacheManagement";
 
 interface Topic {
   id: string;
@@ -123,6 +124,18 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t space-y-2">
+        <CacheManagement 
+          cachedCount={cachedTopics.size} 
+          onCacheChange={async () => {
+            const cached = new Set<string>();
+            for (const topic of topics) {
+              if (await audioCacheService.isCached(topic.id)) {
+                cached.add(topic.id);
+              }
+            }
+            setCachedTopics(cached);
+          }} 
+        />
         <Button
           variant="outline"
           className="w-full justify-start gap-2"
