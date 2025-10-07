@@ -26,8 +26,10 @@ export interface Topic {
   pdfPath?: string;
   htmlPath?: string;
   audioPath?: string;
+  imagePath?: string;
   hasDocx: boolean;
   hasPdf: boolean;
   hasHtml: boolean;
   hasAudio: boolean;
+  hasImage: boolean;
 }

@@ -77,6 +77,14 @@ export class MemStorage implements IStorage {
           f.toLowerCase().endsWith('.wav')
         );
 
+        // Support image files
+        const imageFile = files.find(f => 
+          f.toLowerCase().endsWith('.jpg') || 
+          f.toLowerCase().endsWith('.jpeg') ||
+          f.toLowerCase().endsWith('.png') || 
+          f.toLowerCase().endsWith('.webp')
+        );
+
         const title = topicFolder.name
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -93,10 +101,12 @@ export class MemStorage implements IStorage {
           pdfPath: pdfFile ? `/api/topics/${topicId}/pdf` : undefined,
           htmlPath: htmlFile ? `/api/topics/${topicId}/html` : undefined,
           audioPath: audioFile ? `/api/topics/${topicId}/audio` : undefined,
+          imagePath: imageFile ? `/api/topics/${topicId}/image` : undefined,
           hasDocx: !!docxFile,
           hasPdf: !!pdfFile,
           hasHtml: !!htmlFile,
           hasAudio: !!audioFile,
+          hasImage: !!imageFile,
         });
       }
     }

@@ -227,6 +227,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/topics/:topicId(*)/image", async (req, res) => {
+    try {
+      const { topicId } = req.params;
+      
+      // topicId should be in format: category/topic
+      const parts = topicId.split('/');
+      if (parts.length !== 2) {
+        return res.status(400).json({ error: "Invalid topic ID format" });
+      }
+
+      const [category, topic] = parts;
+      
+      // Sanitize both parts to prevent directory traversal
+      const sanitizedCategory = path.basename(category);
+      const sanitizedTopic = path.basename(topic);
+      
+      if (sanitizedCategory !== category || sanitizedTopic !== topic || 
+          category.includes('..') || topic.includes('..')) {
+        return res.status(400).json({ error: "Invalid topic ID" });
+      }
+
+      const topicsRoot = path.join(process.cwd(), "uploads", "topics");
+      const topicDir = path.join(topicsRoot, sanitizedCategory, sanitizedTopic);
+      
+      // Verify resolved path is within topics root
+      const resolvedPath = path.resolve(topicDir);
+      if (!resolvedPath.startsWith(path.resolve(topicsRoot))) {
+        return res.status(400).json({ error: "Invalid topic ID" });
+      }
+
+      try {
+        const files = await fs.readdir(topicDir);
+        const imageFile = files.find(f => {
+          const ext = f.toLowerCase();
+          return ext.endsWith('.jpg') || ext.endsWith('.jpeg') || ext.endsWith('.png') || ext.endsWith('.webp');
+        });
+        
+        if (!imageFile) {
+          return res.status(404).json({ error: "Image file not found" });
+        }
+
+        const imagePath = path.join(topicDir, imageFile);
+        const ext = imageFile.toLowerCase();
+        const contentType = ext.endsWith('.png') ? 'image/png' :
+                           ext.endsWith('.webp') ? 'image/webp' :
+                           'image/jpeg';
+        
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+        res.sendFile(imagePath);
+      } catch (err: any) {
+        if (err.code === 'ENOENT') {
+          return res.status(404).json({ error: "Topic not found" });
+        }
+        throw err;
+      }
+    } catch (error) {
+      console.error("Error serving image:", error);
+      res.status(500).json({ error: "Failed to serve image" });
+    }
+  });
+
   const feedbackSchema = z.object({
     type: z.enum(['feedback', 'request']),
     message: z.string().min(10, 'Message must be at least 10 characters'),
