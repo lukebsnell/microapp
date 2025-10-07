@@ -36,14 +36,15 @@ Preferred communication style: Simple, everyday language.
 
 **Runtime**: Node.js with Express.js framework
 
-**API Structure**: RESTful API with three main endpoints:
+**API Structure**: RESTful API with four main endpoints:
 - `GET /api/topics` - Retrieves all available topics organized by category
 - `GET /api/topics/:categoryId/:topicId/pdf` - Serves PDF files for specific topics
 - `GET /api/topics/:categoryId/:topicId/audio` - Serves audio files for specific topics
+- `GET /api/topics/:topicId/image` - Serves image files for specific topics (when available)
 
 **File Storage Pattern**: Hierarchical filesystem-based storage with two-level organization:
 - Category folders (laboratory, bacteria, fungi, viruses, parasites, infection-control, antimicrobials, built-environment)
-- Topic folders within each category containing one PDF and one WAV file
+- Topic folders within each category containing one PDF/DOCX file, one audio file (WAV/MP3), and optionally one image file (.jpg, .png, .webp) for detailed diagrams or mindmaps
 
 **Storage Abstraction**: Interface-based storage pattern (`IStorage`) currently implemented with in-memory storage (`MemStorage`) for user data, with filesystem scanning for topic content. This design allows for easy migration to database-backed storage.
 
@@ -99,6 +100,33 @@ uploads/topics/
 - Cache notifications propagated via CacheContext to keep UI in sync
 - Components: AudioPlayer (cache operations), AppSidebar (offline indicators), CacheManagement (storage stats)
 - Security: Audio remains within browser sandbox, no file system access required
+
+### Image Viewer with Zoom and Pan Controls
+
+**Purpose**: Interactive viewer for detailed medical diagrams, mindmaps, and reference images that accompany certain topics.
+
+**Features**:
+- **Tabbed Interface**: Topics with images display Content/Images tabs for easy switching between text and visual content
+- **Desktop Controls**: 
+  - Scroll-wheel zoom (0.5x to 5x magnification)
+  - Click-and-drag panning when zoomed in
+  - Zoom in/out buttons for precise control
+  - Reset view button to return to original scale and position
+  - Fullscreen mode for detailed examination
+- **Mobile Support**:
+  - Pinch-to-zoom gestures (two-finger zoom)
+  - Single-finger drag panning when zoomed
+  - Touch-optimized interface
+- **Real-time Feedback**: Displays current zoom percentage and interaction hints
+
+**Implementation Details**:
+- Backend automatically detects image files (.jpg, .jpeg, .png, .webp) during topic scanning
+- Topics with images have `hasImage: true` flag and `imagePath` in metadata
+- ImageViewer component handles all zoom/pan state management
+- Touch event handlers prevent default browser scrolling for smooth gesture controls
+- Fullscreen API integration for immersive viewing
+
+**Use Cases**: Ideal for complex bacterial classification charts, infection control flowcharts, antimicrobial mechanism diagrams, and comprehensive topic mindmaps.
 
 ### External Dependencies
 
