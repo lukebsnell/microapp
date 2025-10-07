@@ -13,8 +13,16 @@ export function ImageViewer({ imageSrc, alt }: ImageViewerProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [initialPinchDistance, setInitialPinchDistance] = useState<number | null>(null);
+  const [initialPinchScale, setInitialPinchScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+
+  const getPinchDistance = (touches: React.TouchList) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
@@ -43,17 +51,36 @@ export function ImageViewer({ imageSrc, alt }: ImageViewerProps) {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    if (e.touches.length === 1 && scale > 1) {
+    e.preventDefault();
+    
+    if (e.touches.length === 2) {
+      // Pinch to zoom
+      const distance = getPinchDistance(e.touches);
+      setInitialPinchDistance(distance);
+      setInitialPinchScale(scale);
+      setIsDragging(false);
+    } else if (e.touches.length === 1 && scale > 1) {
+      // Pan when zoomed
       setIsDragging(true);
       setDragStart({
         x: e.touches[0].clientX - position.x,
         y: e.touches[0].clientY - position.y,
       });
+      setInitialPinchDistance(null);
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (isDragging && e.touches.length === 1 && scale > 1) {
+    e.preventDefault();
+    
+    if (e.touches.length === 2 && initialPinchDistance !== null) {
+      // Pinch to zoom
+      const currentDistance = getPinchDistance(e.touches);
+      const scaleChange = currentDistance / initialPinchDistance;
+      const newScale = Math.max(0.5, Math.min(5, initialPinchScale * scaleChange));
+      setScale(newScale);
+    } else if (isDragging && e.touches.length === 1 && scale > 1) {
+      // Pan when zoomed
       setPosition({
         x: e.touches[0].clientX - dragStart.x,
         y: e.touches[0].clientY - dragStart.y,
@@ -63,6 +90,7 @@ export function ImageViewer({ imageSrc, alt }: ImageViewerProps) {
 
   const handleTouchEnd = () => {
     setIsDragging(false);
+    setInitialPinchDistance(null);
   };
 
   const zoomIn = () => setScale(prev => Math.min(5, prev + 0.25));
