@@ -1,8 +1,9 @@
 import { MessageSquare, Home } from "lucide-react";
 import { HTMLContentViewer } from "./HTMLContentViewer";
+import { ImageViewer } from "./ImageViewer";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLocation } from "wouter";
-import { useToast } from "@/hooks/use-toast";
 
 import type { Topic } from "@shared/schema";
 
@@ -63,7 +64,22 @@ export function TopicContent({ topic, onNavigateHome }: TopicContentProps) {
       </div>
 
       <div className="flex-1 overflow-hidden">
-        <HTMLContentViewer htmlSrc={contentSrc} topicTitle={topic.title} />
+        {topic.hasImage ? (
+          <Tabs defaultValue="content" className="h-full flex flex-col">
+            <TabsList className="mx-4 mt-2">
+              <TabsTrigger value="content" data-testid="tab-content">Content</TabsTrigger>
+              <TabsTrigger value="images" data-testid="tab-images">Images</TabsTrigger>
+            </TabsList>
+            <TabsContent value="content" className="flex-1 overflow-hidden mt-0">
+              <HTMLContentViewer htmlSrc={contentSrc} topicTitle={topic.title} />
+            </TabsContent>
+            <TabsContent value="images" className="flex-1 overflow-hidden mt-0">
+              <ImageViewer imageSrc={topic.imagePath!} alt={topic.title} />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <HTMLContentViewer htmlSrc={contentSrc} topicTitle={topic.title} />
+        )}
       </div>
     </div>
   );
