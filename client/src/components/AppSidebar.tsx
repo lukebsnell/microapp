@@ -64,6 +64,39 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
     return acc;
   }, {} as Record<string, Topic[]>);
 
+  // Define custom category order
+  const categoryOrder = [
+    'Bacteria',
+    'Fungi',
+    'Viruses',
+    'Sexual health',
+    'Infection Control',
+    'Antimicrobials',
+    'Laboratory',
+    'Summaries',
+    'References'
+  ];
+
+  // Sort categories by custom order
+  const sortedCategories = Object.entries(groupedTopics).sort(([catA], [catB]) => {
+    const indexA = categoryOrder.indexOf(catA);
+    const indexB = categoryOrder.indexOf(catB);
+    
+    // If both categories are in the order list, sort by their position
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
+    }
+    
+    // If only catA is in the order list, it comes first
+    if (indexA !== -1) return -1;
+    
+    // If only catB is in the order list, it comes first
+    if (indexB !== -1) return 1;
+    
+    // If neither is in the order list, sort alphabetically
+    return catA.localeCompare(catB);
+  });
+
   const handleTopicSelect = (topicId: string) => {
     onTopicSelect(topicId);
     // Close sidebar after selecting topic
@@ -96,7 +129,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
       </SidebarHeader>
       
       <SidebarContent>
-        {Object.entries(groupedTopics).map(([category, categoryTopics]) => (
+        {sortedCategories.map(([category, categoryTopics]) => (
           <Collapsible key={category} defaultOpen className="group/collapsible">
             <SidebarGroup>
               <SidebarGroupLabel asChild>
