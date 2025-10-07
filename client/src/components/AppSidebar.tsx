@@ -64,7 +64,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
     return acc;
   }, {} as Record<string, Topic[]>);
 
-  // Define custom category order
+  // Define custom category order (excluding References which always comes last)
   const categoryOrder = [
     'Bacteria',
     'Fungi',
@@ -73,27 +73,30 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
     'Infection Control',
     'Antimicrobials',
     'Laboratory',
-    'Summaries',
-    'References'
+    'Summaries'
   ];
 
-  // Sort categories by custom order
+  // Sort categories: predefined order first, then alphabetically, then References last
   const sortedCategories = Object.entries(groupedTopics).sort(([catA], [catB]) => {
+    // References always comes last
+    if (catA === 'References') return 1;
+    if (catB === 'References') return -1;
+    
     const indexA = categoryOrder.indexOf(catA);
     const indexB = categoryOrder.indexOf(catB);
     
-    // If both categories are in the order list, sort by their position
+    // If both categories are in the predefined order list, sort by their position
     if (indexA !== -1 && indexB !== -1) {
       return indexA - indexB;
     }
     
-    // If only catA is in the order list, it comes first
+    // If only catA is in the predefined order, it comes first
     if (indexA !== -1) return -1;
     
-    // If only catB is in the order list, it comes first
+    // If only catB is in the predefined order, it comes first
     if (indexB !== -1) return 1;
     
-    // If neither is in the order list, sort alphabetically
+    // If neither is in the predefined order, sort alphabetically
     return catA.localeCompare(catB);
   });
 
