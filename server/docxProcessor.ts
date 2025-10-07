@@ -10,7 +10,7 @@ export async function processDocx(docxPath: string): Promise<ProcessedDoc> {
   try {
     const dataBuffer = await fs.readFile(docxPath);
     
-    // Convert DOCX to HTML with mammoth - preserves tables, headings, formatting
+    // Convert DOCX to HTML with mammoth - preserves tables, headings, formatting, and lists
     const result = await mammoth.convertToHtml(
       { buffer: dataBuffer },
       {
@@ -21,7 +21,7 @@ export async function processDocx(docxPath: string): Promise<ProcessedDoc> {
           "p[style-name='Heading 3'] => h3.text-lg.font-semibold.mt-6.mb-3",
           "p[style-name='Heading 4'] => h4.text-base.font-semibold.mt-4.mb-2",
           "p[style-name='Normal'] => p.mb-3",
-          "p[style-name='List Paragraph'] => p.ml-4.mb-2",
+          // Remove List Paragraph mapping to let mammoth handle lists natively
         ],
       }
     );
