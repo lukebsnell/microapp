@@ -50,14 +50,8 @@ function moveReferencesToEnd(html: string): string {
   // Remove it from current position
   const htmlWithoutRefs = html.substring(0, refHeading.index) + html.substring(endIndex);
   
-  // Add it at the end (before closing div)
-  const closingDivIndex = htmlWithoutRefs.lastIndexOf('</div>');
-  if (closingDivIndex !== -1) {
-    return htmlWithoutRefs.substring(0, closingDivIndex) + '\n' + referencesSection + htmlWithoutRefs.substring(closingDivIndex);
-  }
-  
-  // If no closing div, just append
-  return htmlWithoutRefs + '\n' + referencesSection;
+  // Append References at the very end (trim trailing whitespace first)
+  return htmlWithoutRefs.trimEnd() + '\n' + referencesSection;
 }
 
 export async function processDocx(docxPath: string): Promise<ProcessedDoc> {
