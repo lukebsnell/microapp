@@ -6,54 +6,6 @@ interface ProcessedDoc {
   html: string;
 }
 
-function moveReferencesToEnd(html: string): string {
-  // Find References section and move it to the end
-  const headingPattern = /<(h[1-6])[^>]*>(.*?)<\/\1>/gi;
-  const headings: Array<{ tag: string; level: number; content: string; index: number; fullMatch: string }> = [];
-  
-  let match;
-  while ((match = headingPattern.exec(html)) !== null) {
-    const tag = match[1].toLowerCase();
-    const level = parseInt(tag.charAt(1));
-    const content = match[2].replace(/<[^>]*>/g, '').trim();
-    headings.push({
-      tag,
-      level,
-      content,
-      index: match.index,
-      fullMatch: match[0]
-    });
-  }
-  
-  // Find the References heading (case-insensitive)
-  const refIndex = headings.findIndex(h => /^references?$/i.test(h.content));
-  
-  if (refIndex === -1) {
-    return html; // No References section found
-  }
-  
-  const refHeading = headings[refIndex];
-  const refLevel = refHeading.level;
-  
-  // Find where the References section ends (next heading of same or higher level)
-  let endIndex = html.length;
-  for (let i = refIndex + 1; i < headings.length; i++) {
-    if (headings[i].level <= refLevel) {
-      endIndex = headings[i].index;
-      break;
-    }
-  }
-  
-  // Extract the References section
-  const referencesSection = html.substring(refHeading.index, endIndex);
-  
-  // Remove it from current position
-  const htmlWithoutRefs = html.substring(0, refHeading.index) + html.substring(endIndex);
-  
-  // Append References at the very end (trim trailing whitespace first)
-  return htmlWithoutRefs.trimEnd() + '\n' + referencesSection;
-}
-
 export async function processDocx(docxPath: string): Promise<ProcessedDoc> {
   try {
     const dataBuffer = await fs.readFile(docxPath);
@@ -74,11 +26,8 @@ export async function processDocx(docxPath: string): Promise<ProcessedDoc> {
       }
     );
 
-    // Move References section to the end if present
-    const processedHtml = moveReferencesToEnd(result.value);
-    
     // Wrap in a container div
-    const html = `<div class="docx-content">\n${processedHtml}\n</div>`;
+    const html = `<div class="docx-content">\n${result.value}\n</div>`;
     
     if (result.messages && result.messages.length > 0) {
       console.log('DOCX conversion messages:', result.messages);
