@@ -11,6 +11,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
   const [, navigate] = useLocation();
   const [cachedTopics, setCachedTopics] = useState<Set<string>>(new Set());
   const { cacheVersion } = useCacheNotification();
+  const { setOpen, setOpenMobile, isMobile } = useSidebar();
   
   useEffect(() => {
     async function checkCachedTopics() {
@@ -61,6 +63,16 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
     acc[topic.category].push(topic);
     return acc;
   }, {} as Record<string, Topic[]>);
+
+  const handleTopicSelect = (topicId: string) => {
+    onTopicSelect(topicId);
+    // Close sidebar after selecting topic
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      setOpen(false);
+    }
+  };
 
   return (
     <Sidebar>
@@ -102,7 +114,7 @@ export function AppSidebar({ topics, activeTopic, onTopicSelect }: AppSidebarPro
                       return (
                         <SidebarMenuItem key={topic.id}>
                           <SidebarMenuButton
-                            onClick={() => onTopicSelect(topic.id)}
+                            onClick={() => handleTopicSelect(topic.id)}
                             isActive={activeTopic === topic.id}
                             data-testid={`button-topic-${topic.id}`}
                           >
